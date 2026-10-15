@@ -50,5 +50,3 @@ class UserRepository(IUserRepository):
             
             logger.error("Could not be insert the user: %s | Error: %s", user_data.first_name, e)
             raise
-            
-    def authenticate_user(self, email: EmailStr, password: str) -> bool: ...

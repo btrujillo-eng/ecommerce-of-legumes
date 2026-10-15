@@ -33,8 +33,7 @@ class UserCreateRequest(BaseModel):
     user_role: UserRole
     
 class UserResponse(BaseModel):
-    user_id: int
+    user_id: int = Field(description="User's id")
     first_name: Name = Field(description="User's first name")
     email: Email
-    user_role: UserRole
-    
+    user_role: UserRole = Field(description="User's role")

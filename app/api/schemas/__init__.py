@@ -6,6 +6,7 @@ from app.api.schemas.payment import (
     PaymentResponse,
 )
 
+from .token import Token, TokenData
 from .user import (
     UserCreateRequest,
     UserDataRequest,
@@ -18,6 +19,8 @@ __all__ = [
     "CashPaymentDataRequest",
     "PaymentDataRequest",
     "PaymentResponse",
+    "Token",
+    "TokenData",
     "UserCreateRequest",
     "UserDataRequest",
     "UserResponse",

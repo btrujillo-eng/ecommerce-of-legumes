@@ -1,4 +1,5 @@
 from .errors import (
+    AuthenticateUserError,
     CardPaymentMethodError,
     CVVCardError,
     EmailAlreadyExistsError,
@@ -14,6 +15,7 @@ from .errors import (
 )
 
 __all__ = [
+    "AuthenticateUserError",
     "CVVCardError",
     "CardPaymentMethodError",
     "EmailAlreadyExistsError",
