@@ -1,8 +1,6 @@
-from pydantic import EmailStr
-
-from app.api.schemas import UserResponse
 from app.domain.ports import IPasswordHasher, IUserRepository
 from app.exceptions import AuthenticateUserError
+from app.infrastructure.dtos import UserForAuthentication
 
 
 class AuthenticateUserUseCase:
@@ -10,7 +8,7 @@ class AuthenticateUserUseCase:
         self.password_hasher = password_hasher
         self.user_repository = user_repository
         
-    async def authenticate(self, email: EmailStr, password: str) -> UserResponse:
+    async def authenticate(self, email: str, password: str) -> UserForAuthentication:
         user = await self.user_repository.get_user_by_email(email)
         if not user:
             raise AuthenticateUserError("Denegated access to the system")
@@ -19,9 +17,4 @@ class AuthenticateUserUseCase:
         if not is_correct:
             raise AuthenticateUserError("Denegated access to the system")
         
-        return UserResponse(
-            user_id=user.id,
-            first_name=user.first_name,
-            email=user.email,
-            user_role=user.user_role
-        )
+        return user

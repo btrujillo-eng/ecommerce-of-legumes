@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
-from pydantic import EmailStr
-
-from app.api.schemas import UserCreateRequest, UserResponse
-from app.infrastructure.models.users import User
+from app.infrastructure.dtos import (
+    RegisteredUserData,
+    RegisterUserData,
+    UserForAuthentication,
+)
 
 
 class IUserRepository(ABC):
@@ -13,7 +14,7 @@ class IUserRepository(ABC):
     Any class that impelement this interface must define 'get_user_by_email', 'add_user' methods.
     """
     @abstractmethod
-    async def get_user_by_email(self, email: EmailStr) -> User | None: ...
+    async def get_user_by_email(self, email: str) -> UserForAuthentication | None: ...
     
     @abstractmethod
-    async def add_user(self, user_data: UserCreateRequest, password_hash: str) -> UserResponse: ...
+    async def add_user(self, user_data: RegisterUserData, password_hash: str) -> RegisteredUserData: ...

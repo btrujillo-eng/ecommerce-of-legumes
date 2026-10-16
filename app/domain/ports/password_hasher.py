@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from pydantic import SecretStr
-
 
 class IPasswordHasher(ABC):
     """
@@ -10,7 +8,7 @@ class IPasswordHasher(ABC):
     Any class that implemet this interface must define the 'apply_hash' and 'check_password' methods.
     
     Methods:
-        apply_hash(password: SecretStr) -> Secret:
+        apply_hash(password: str) -> str:
             Is responsible for applying the hash to the user's password.
             
         check_password(hashed_password: str, password: str) -> bool:
@@ -18,7 +16,7 @@ class IPasswordHasher(ABC):
             registered in the database.
     """
     @abstractmethod
-    def apply_hash(self, password: SecretStr) -> SecretStr: ...
+    def apply_hash(self, password: str) -> str: ...
     
     @abstractmethod
     def check_password(self, hashed_password: str, password: str) -> bool: ...
