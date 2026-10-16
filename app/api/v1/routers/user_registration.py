@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies.user import get_register_user
+from app.api.dependencies.user_registration import get_register_user
 from app.api.schemas import UserCreateRequest, UserResponse
 from app.application import RegisterUserUseCase
 from app.exceptions import (
