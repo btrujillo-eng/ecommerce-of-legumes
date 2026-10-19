@@ -25,6 +25,21 @@ class RegisteredUserData:
 @dataclass(frozen=True, slots=True)
 class UserForAuthentication:
     user_id: int
+    first_name: str
+    first_surname: str
     password_hash: str
     user_role: str
     is_active: bool
+
+@dataclass(frozen=True, slots=True)   
+class AuthenticatedUser:
+    user_id: int
+    first_name: str
+    first_surname: str
+    user_role: str
+    is_active: bool
+
+@dataclass(frozen=True, slots=True)     
+class UpdatedUserInfo:
+    first_name: str
+    first_surname: str
