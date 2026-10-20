@@ -12,6 +12,7 @@ from app.domain.ports.payment_provider import (
     IPaymentProcessor,
     IShoppingCart,
 )
+from app.domain.ports.product_repository import IProductRepository
 from app.domain.ports.unit_of_work import IUnitOfWork
 from app.domain.ports.user_repository import IUserRepository
 
@@ -30,6 +31,7 @@ __all__ = [
     "IPaymentGateway",
     "IPaymentMethodFactory",
     "IPaymentProcessor",
+    "IProductRepository",
     "IShoppingCart",
     "IUnitOfWork",
     "IUserRepository",
