@@ -34,6 +34,7 @@ class UserCreateRequest(BaseModel):
     
 class UserResponse(BaseModel):
     user_id: int = Field(description="User's id")
-    password_hash: str = Field(description="User's password")
+    first_name : Name = Field(description="User's first name")
+    first_surname : Surname = Field(description="User's first surname")
     user_role: UserRole = Field(description="User's role")
     is_active: bool = Field(description="Indicates wheter the user account is active en the system")
