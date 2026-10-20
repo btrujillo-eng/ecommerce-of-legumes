@@ -1,5 +1,5 @@
 from app.domain.ports import IPasswordHasher, IUserRepository
-from app.exceptions import AuthenticateUserError
+from app.exceptions import AuthenticateUserError, UserIsNotActiveError
 from app.infrastructure.dtos import UserForAuthentication
 
 
@@ -16,5 +16,8 @@ class AuthenticateUserUseCase:
         is_correct = self.password_hasher.check_password(user.password_hash, password)
         if not is_correct:
             raise AuthenticateUserError("Denegated access to the system")
+        
+        if not user.is_active:
+            raise UserIsNotActiveError("User is not active in the system")
         
         return user
