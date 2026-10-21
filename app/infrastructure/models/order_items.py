@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import DateTime, ForeignKey, Identity, Integer, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 
 from app.infrastructure.models.base import Base
 from app.infrastructure.models.orders import Order
@@ -20,10 +20,7 @@ class OrderItem(Base):
     product_id: Mapped[Product] = mapped_column(Integer, ForeignKey('products.id'), nullable=False)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
-        default=datetime.now(ZoneInfo('America/Bogota'))
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
     
     order: Mapped[Order] = relationship(back_populates='order_items')
     product: Mapped[Product] = relationship(back_populates='order_items')
