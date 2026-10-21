@@ -9,12 +9,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.domain.enums import DeliveryStatus, PaymentMethods, PaymentStatus
-from app.infrastructure.models.base import Base
-from app.infrastructure.models.enum_utils import get_enum_value
+from app.infrastructure.persistence.models.base import Base
+from app.infrastructure.persistence.models.enum_utils import get_enum_value
 
 if TYPE_CHECKING:
-    from app.infrastructure.models.order_items import OrderItem
-    from app.infrastructure.models.users import User
+    from app.infrastructure.persistence.models.order_items import OrderItem
+    from app.infrastructure.persistence.models.users import User
     
 class Order(Base):
     __tablename__ = 'orders'

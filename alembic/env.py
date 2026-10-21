@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, pool
 
 from alembic import context
 from app.infrastructure.config import get_settings
-from app.infrastructure.models import Base
+from app.infrastructure.persistence.models import Base
 
 settings = get_settings()
 

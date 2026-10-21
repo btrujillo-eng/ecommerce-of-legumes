@@ -9,12 +9,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.domain.enums import UnitOfMeasure
-from app.infrastructure.models.base import Base
-from app.infrastructure.models.enum_utils import get_enum_value
+from app.infrastructure.persistence.models.base import Base
+from app.infrastructure.persistence.models.enum_utils import get_enum_value
 
 if TYPE_CHECKING:
-    from app.infrastructure.models.order_items import OrderItem
-    from app.infrastructure.models.product_section import ProductSection
+    from app.infrastructure.persistence.models.order_items import OrderItem
+    from app.infrastructure.persistence.models.product_section import ProductSection
 
 class Product(Base):
     __tablename__ = 'products'

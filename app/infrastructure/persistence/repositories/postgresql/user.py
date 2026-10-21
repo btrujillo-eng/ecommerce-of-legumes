@@ -16,7 +16,7 @@ from app.infrastructure.dtos import (
     UpdatedUserInfo,
     UserForAuthentication,
 )
-from app.infrastructure.models import User
+from app.infrastructure.persistence.models import User
 
 logger = logging.getLogger(__name__)
 

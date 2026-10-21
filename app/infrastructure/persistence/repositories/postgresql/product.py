@@ -16,7 +16,7 @@ from app.infrastructure.dtos import (
     RegisterProductData,
     UpdatedProduct,
 )
-from app.infrastructure.models import Product
+from app.infrastructure.persistence.models import Product
 
 logger = logging.getLogger(__name__)
 

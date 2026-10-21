@@ -7,10 +7,10 @@ from sqlalchemy import DateTime, Identity, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from app.infrastructure.models.base import Base
+from app.infrastructure.persistence.models.base import Base
 
 if TYPE_CHECKING:
-    from app.infrastructure.models.products import Product
+    from app.infrastructure.persistence.models.products import Product
 
 class ProductSection(Base):
     __tablename__ = 'product_sections'

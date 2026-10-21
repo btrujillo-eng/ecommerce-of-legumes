@@ -8,11 +8,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.domain.enums import UserRole
-from app.infrastructure.models.base import Base
-from app.infrastructure.models.enum_utils import get_enum_value
+from app.infrastructure.persistence.models.base import Base
+from app.infrastructure.persistence.models.enum_utils import get_enum_value
 
 if TYPE_CHECKING:
-    from app.infrastructure.models.orders import Order
+    from app.infrastructure.persistence.models.orders import Order
 
 class User(Base):
     __tablename__ = 'users'

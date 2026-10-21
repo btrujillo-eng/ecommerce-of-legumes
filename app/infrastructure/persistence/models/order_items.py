@@ -7,9 +7,9 @@ from sqlalchemy import DateTime, ForeignKey, Identity, Integer, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from app.infrastructure.models.base import Base
-from app.infrastructure.models.orders import Order
-from app.infrastructure.models.products import Product
+from app.infrastructure.persistence.models.base import Base
+from app.infrastructure.persistence.models.orders import Order
+from app.infrastructure.persistence.models.products import Product
 
 
 class OrderItem(Base):
