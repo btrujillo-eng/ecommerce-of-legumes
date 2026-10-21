@@ -18,3 +18,5 @@ htmlcov/
 # IDE settings
 .vscode/
 .idea/
+.venv/
+__pycache__
