@@ -13,6 +13,7 @@ from app.infrastructure.persistence.models.enum_utils import get_enum_value
 
 if TYPE_CHECKING:
     from app.infrastructure.persistence.models.orders import Order
+    from app.infrastructure.persistence.models.restore_codes import RestoreCode
 
 class User(Base):
     __tablename__ = 'users'
@@ -29,4 +30,5 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.current_timestamp())
     
     orders: Mapped[list[Order]] = relationship(back_populates='user')
+    restore_codes: Mapped[list[RestoreCode]] = relationship(back_populates='user')
     
