@@ -1,10 +1,10 @@
-from app.domain.ports import IPasswordHasher, IUnitOfWork
+from app.domain.ports import IHasher, IUnitOfWork
 from app.exceptions import RepositoryNotInitializedError
 from app.infrastructure.dtos import RegisteredUserData, RegisterUserData
 
 
 class RegisterUserUseCase:
-    def __init__(self, uow: IUnitOfWork, password_hasher: IPasswordHasher):
+    def __init__(self, uow: IUnitOfWork, password_hasher: IHasher):
         self.uow = uow
         self.password_hasher = password_hasher
         

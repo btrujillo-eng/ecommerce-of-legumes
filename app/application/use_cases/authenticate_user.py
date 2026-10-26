@@ -1,10 +1,10 @@
-from app.domain.ports import IPasswordHasher, IUserRepository
+from app.domain.ports import IHasher, IUserRepository
 from app.exceptions import AuthenticateUserError, UserIsNotActiveError
 from app.infrastructure.dtos import UserForAuthentication
 
 
 class AuthenticateUserUseCase:
-    def __init__(self, password_hasher: IPasswordHasher, user_repository: IUserRepository) -> None:
+    def __init__(self, password_hasher: IHasher, user_repository: IUserRepository) -> None:
         self.password_hasher = password_hasher
         self.user_repository = user_repository
         
@@ -13,7 +13,7 @@ class AuthenticateUserUseCase:
         if not user:
             raise AuthenticateUserError("Denegated access to the system")
         
-        is_correct = self.password_hasher.check_password(user.password_hash, password)
+        is_correct = self.password_hasher.check_hash(user.password_hash, password)
         if not is_correct:
             raise AuthenticateUserError("Denegated access to the system")
         
