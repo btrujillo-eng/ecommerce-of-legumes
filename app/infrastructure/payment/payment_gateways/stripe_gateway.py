@@ -61,7 +61,12 @@ class StripeGateway(IPaymentGateway):
                     last_digits=card_number[-4:],
                 ),
             )
-        except stripe.CardError as exc:
+        except StripeError as exc:
+            if exc.__class__.__name__ != "CardError":
+                # Network/API errors can leave the charge outcome uncertain. Do not mark
+                # the order failed or release its stock; retry with the same idempotency key.
+                logger.exception("Stripe outcome is uncertain; propagating for reconciliation")
+                raise
             logger.warning("Stripe declined card payment: %s", exc)
             return PaymentResponse(
                 currency=payment_data.currency,
@@ -76,8 +81,3 @@ class StripeGateway(IPaymentGateway):
                     last_digits=card_number[-4:],
                 ),
             )
-        except StripeError:
-            # Network/API errors can leave the charge outcome uncertain. Do not mark
-            # the order failed or release its stock; retry with the same idempotency key.
-            logger.exception("Stripe outcome is uncertain; propagating for reconciliation")
-            raise

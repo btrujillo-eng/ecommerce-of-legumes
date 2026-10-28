@@ -258,6 +258,8 @@ async def checkout(
     key = idempotency_key.strip()
     existing_order = await session.scalar(select(Order).where(Order.checkout_key == key))
     if existing_order is not None:
+        if existing_order.user_id != user.id:
+            raise HTTPException(status_code=409, detail="La clave de idempotencia ya está asociada a otra solicitud.")
         loaded = await _load_order(session, existing_order.id)
         return CheckoutResponse(order=_order_response(loaded), message="Esta solicitud de compra ya fue procesada.", transaction_id=loaded.payment_transaction_id)
 
