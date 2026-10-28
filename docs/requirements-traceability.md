@@ -48,7 +48,9 @@ Las confirmaciones de tarjeta aprobada, tarjeta rechazada e instrucciones de efe
 El plan JMeter `tests/performance/registration-login-60-users.jmx` ejecuta registro e inicio de sesión con 60 usuarios concurrentes y correos únicos. Ejecuta en un entorno de pruebas, no en producción:
 
 ```bash
-jmeter -n -t tests/performance/registration-login-60-users.jmx -l results.jtl -e -o report
+for run in 1 2 3; do
+  jmeter -n -t tests/performance/registration-login-60-users.jmx -l "results-$run.jtl" -e -o "report-$run"
+done
 ```
 
 El plan apunta por defecto a `http://127.0.0.1:8000`; cambia el host/puerto en el archivo si el entorno es diferente. Revisa el percentil 95 de cada sampler y exige ≤ 3 s. Los objetivos de stock, precio, checkout, recibo, empaque, pago y entrega requieren escenarios con productos y usuarios de cada rol sembrados en el entorno de prueba; no se consideran aprobados solo por existir el endpoint.
