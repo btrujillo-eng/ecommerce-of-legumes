@@ -8,6 +8,7 @@ from sqlalchemy import URL
 class Settings(BaseSettings):
     stripe_api_key: SecretStr = Field(default=...)
     resend_api_key: SecretStr = Field(default=...)
+    resend_from_email: str = "onboarding@resend.dev"
     debug: bool = Field(default=False)
     migrator_db_url: SecretStr = Field(default=...)
     db_user: SecretStr = Field(default=...)
@@ -18,9 +19,9 @@ class Settings(BaseSettings):
     jwt_secret_key: SecretStr = Field(default=...)
     jwt_algorithm: str = Field(default=...)
     access_token_expire_minutes: int = Field(default=...)
-    
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-    
+
     @computed_field
     @property
     def async_database_url(self) -> URL:
@@ -32,7 +33,8 @@ class Settings(BaseSettings):
             port=int(self.db_port.get_secret_value()),
             database=self.db_name.get_secret_value(),
         )
-    
+
+
 @lru_cache
-def get_settings()-> Settings:
+def get_settings() -> Settings:
     return Settings()
