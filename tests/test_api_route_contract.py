@@ -2,6 +2,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from main import app
+from app.api.v1.routers.commerce import _validate_search_term
+import pytest
+from fastapi import HTTPException
 
 
 def test_required_workbook_routes_are_registered() -> None:
@@ -43,3 +46,13 @@ def test_jmeter_performance_plan_is_valid_xml() -> None:
     plan = Path("tests/performance/registration-login-60-users.jmx")
     root = ET.parse(plan).getroot()
     assert root.tag == "jmeterTestPlan"
+
+
+
+def test_search_rejects_sql_injection_and_numeric_queries() -> None:
+    with pytest.raises(HTTPException) as injection_error:
+        _validate_search_term("'; DROP TABLE users; --")
+    assert injection_error.value.status_code == 400
+    with pytest.raises(HTTPException):
+        _validate_search_term("12345")
+    assert _validate_search_term("tomate cherry") == "tomate cherry"

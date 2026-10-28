@@ -11,6 +11,7 @@ from app.api.schemas.commerce import (
     ProductStockUpdateRequest,
 )
 from app.api.schemas.user import ContactInfoRequest, UserCreateRequest
+from app.infrastructure.hasher import Hasher
 from app.domain.enums import UnitOfMeasure
 
 
@@ -71,3 +72,12 @@ def test_email_contact_is_validated() -> None:
     assert ContactInfoRequest(email="buyer@example.com").email == "buyer@example.com"
     with pytest.raises(ValidationError):
         ContactInfoRequest(email="not-an-email")
+
+
+
+def test_password_is_hashed_and_verifiable() -> None:
+    password = "StrongPass1!"
+    stored_hash = Hasher().apply_hash(password)
+    assert stored_hash != password
+    assert Hasher().check_hash(stored_hash, password)
+    assert not Hasher().check_hash(stored_hash, "WrongPass1!")

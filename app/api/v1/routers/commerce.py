@@ -46,6 +46,13 @@ PackagingManager = Annotated[User, Depends(require_roles(UserRole.PACKAGING_MANA
 Courier = Annotated[User, Depends(require_roles(UserRole.COURIER))]
 
 
+def _validate_search_term(value: str) -> str:
+    term = value.strip()
+    if not term or not re.fullmatch(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s-]+", term):
+        raise HTTPException(status_code=400, detail="La búsqueda solo admite letras y espacios.")
+    return term
+
+
 def _order_response(order: Order) -> OrderResponse:
     return OrderResponse(
         id=order.id,
