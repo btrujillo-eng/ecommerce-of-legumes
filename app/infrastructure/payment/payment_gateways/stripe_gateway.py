@@ -61,14 +61,14 @@ class StripeGateway(IPaymentGateway):
                     last_digits=card_number[-4:],
                 ),
             )
-        except StripeError as exc:
-            logger.exception("Stripe error while processing payment")
+        except stripe.CardError as exc:
+            logger.warning("Stripe declined card payment: %s", exc)
             return PaymentResponse(
                 currency=payment_data.currency,
                 transaction_amount=payment_data.transaction_amount,
-                transaction_id=f"failed-{payment_data.idempotency_key or uuid4()}",
+                transaction_id=str(getattr(exc, "request_id", None) or f"declined-{payment_data.idempotency_key or uuid4()}"),
                 payment_status="failed",
-                message="No fue posible aprobar el pago. Verifica el estado antes de volver a intentarlo.",
+                message="El pago fue rechazado por el emisor de la tarjeta.",
                 created_at=datetime.now(UTC),
                 payment_method=CardPaymentResponse(
                     method=PaymentMethods.CARD,
@@ -76,3 +76,8 @@ class StripeGateway(IPaymentGateway):
                     last_digits=card_number[-4:],
                 ),
             )
+        except StripeError:
+            # Network/API errors can leave the charge outcome uncertain. Do not mark
+            # the order failed or release its stock; retry with the same idempotency key.
+            logger.exception("Stripe outcome is uncertain; propagating for reconciliation")
+            raise

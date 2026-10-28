@@ -334,7 +334,7 @@ async def checkout(
         logger.exception("Payment processing outcome is uncertain for checkout %s", key)
         raise HTTPException(
             status_code=503,
-            detail="No fue posible confirmar el resultado del pago. Consulta el estado del pedido antes de reintentar.",
+            detail=f"No fue posible confirmar el resultado del pago. El pedido {order.id} permanece pendiente; consulta GET /orders/{order.id} y reintenta mediante POST /orders/{order.id}/retry-payment con el mismo Idempotency-Key.",
         )
 
     async with session.begin():
@@ -400,6 +400,101 @@ async def checkout(
         if loaded.payment_method == PaymentMethods.CASH
         else "El pago fue rechazado. El stock se liberará si continúa rechazado durante 10 minutos."
     )
+    return CheckoutResponse(order=_order_response(loaded), message=message, transaction_id=loaded.payment_transaction_id)
+
+
+@router.post("/orders/{order_id}/retry-payment", response_model=CheckoutResponse)
+async def retry_uncertain_card_payment(
+    order_id: int,
+    payment_method: CardPaymentDataRequest,
+    session: SessionDep,
+    user: CurrentCustomer,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=16, max_length=255)],
+    payment_factory=Depends(get_payment_method_factory),
+) -> CheckoutResponse:
+    order = await session.scalar(select(Order).where(Order.id == order_id))
+    if order is None or order.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado.")
+    if order.payment_method != PaymentMethods.CARD or order.payment_status != PaymentStatus.PENDING:
+        raise HTTPException(status_code=409, detail="El pedido no tiene un pago con tarjeta pendiente de reconciliación.")
+    if order.checkout_key != idempotency_key.strip():
+        raise HTTPException(status_code=409, detail="Debes reutilizar el Idempotency-Key original del checkout.")
+    total = order.total_price
+    order_phone = order.phone_number
+    user_first_name = user.first_name
+    user_middle_name = user.middle_name
+    user_first_surname = user.first_surname
+    user_middle_surname = user.middle_surname
+    user_email = user.email
+    await session.rollback()
+
+    user_data = UserDataRequest(
+        first_name=user_first_name,
+        middle_name=user_middle_name,
+        first_surname=user_first_surname,
+        middle_surname=user_middle_surname,
+        contact_info=ContactInfoRequest(email=user_email, phone_number=order_phone),
+    )
+    payment_data = PaymentDataRequest(
+        user_data=user_data,
+        currency=TypeCurrency.COP,
+        discount_type=DiscountStrategy.NODISCOUNT.value,
+        transaction_amount=total,
+        payment_method=payment_method,
+        idempotency_key=idempotency_key.strip(),
+    )
+    try:
+        processor = payment_factory.create_payment_processor(PaymentMethods.CARD)
+        payment_result = await processor.process(payment_data)
+    except Exception:
+        logger.exception("Retry still has an uncertain Stripe outcome for order %s", order_id)
+        raise HTTPException(
+            status_code=503,
+            detail=f"El resultado sigue sin confirmarse. El pedido {order_id} permanece pendiente; no crees otro pedido y reintenta con la misma clave.",
+        ) from None
+
+    async with session.begin():
+        stored_order = await session.scalar(select(Order).where(Order.id == order_id).with_for_update())
+        if stored_order.payment_status == PaymentStatus.PENDING:
+            stored_order.payment_transaction_id = payment_result.transaction_id
+            if payment_result.payment_status == PaymentStatus.SUCCEDED.value:
+                stored_order.payment_status = PaymentStatus.SUCCEDED
+                stored_order.payment_failed_at = None
+                card = payment_result.payment_method
+                _enqueue_email(
+                    session,
+                    event_key=f"payment-confirmation:{payment_result.transaction_id}",
+                    event_type="payment.card.succeeded",
+                    payload={
+                        "email": user_email,
+                        "first_name": user_first_name,
+                        "transaction_id": payment_result.transaction_id,
+                        "amount": str(payment_result.transaction_amount),
+                        "currency": payment_result.currency.value,
+                        "created_at": payment_result.created_at.isoformat(),
+                        "processing_network": card.processing_network,
+                        "last_digits": card.last_digits,
+                    },
+                )
+            else:
+                stored_order.payment_status = PaymentStatus.FAILED
+                stored_order.payment_failed_at = datetime.now(UTC)
+                _enqueue_email(
+                    session,
+                    event_key=f"payment-failed:{payment_result.transaction_id}",
+                    event_type="payment.card.failed",
+                    payload={
+                        "email": user_email,
+                        "first_name": user_first_name,
+                        "transaction_id": payment_result.transaction_id,
+                        "amount": str(payment_result.transaction_amount),
+                        "currency": payment_result.currency.value,
+                        "message": payment_result.message or "El pago fue rechazado.",
+                    },
+                )
+
+    loaded = await _load_order(session, order_id)
+    message = "Pago con tarjeta aprobado." if loaded.payment_status == PaymentStatus.SUCCEDED else "El pago fue rechazado."
     return CheckoutResponse(order=_order_response(loaded), message=message, transaction_id=loaded.payment_transaction_id)
 
 
