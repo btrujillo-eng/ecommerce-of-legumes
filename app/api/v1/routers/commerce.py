@@ -2,10 +2,9 @@ import asyncio
 import logging
 import os
 import re
-from pathlib import Path
-from uuid import uuid4
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
+from pathlib import Path
 from uuid import uuid4
 from typing import Annotated
 
@@ -253,8 +252,8 @@ async def checkout(
     session: SessionDep,
     user: CurrentCustomer,
     payment_method: CardPaymentDataRequest | CashPaymentDataRequest,
-    payment_factory=Depends(get_payment_method_factory),
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=16, max_length=255)],
+    payment_factory=Depends(get_payment_method_factory),
 ) -> CheckoutResponse:
     key = idempotency_key.strip()
     existing_order = await session.scalar(select(Order).where(Order.checkout_key == key))
