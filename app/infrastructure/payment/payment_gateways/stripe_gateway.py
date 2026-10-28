@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import logging
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -68,10 +69,12 @@ class StripeGateway(IPaymentGateway):
                 logger.exception("Stripe outcome is uncertain; propagating for reconciliation")
                 raise
             logger.warning("Stripe declined card payment: %s", exc)
+            key_material = payment_data.idempotency_key or str(uuid4())
+            declined_reference = hashlib.sha256(key_material.encode()).hexdigest()[:24]
             return PaymentResponse(
                 currency=payment_data.currency,
                 transaction_amount=payment_data.transaction_amount,
-                transaction_id=str(getattr(exc, "request_id", None) or f"declined-{payment_data.idempotency_key or uuid4()}"),
+                transaction_id=f"declined-{declined_reference}",
                 payment_status="failed",
                 message="El pago fue rechazado por el emisor de la tarjeta.",
                 created_at=datetime.now(UTC),

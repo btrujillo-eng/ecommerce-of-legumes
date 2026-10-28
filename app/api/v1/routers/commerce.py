@@ -333,7 +333,7 @@ async def checkout(
         processor = payment_factory.create_payment_processor(payment_method.method)
         payment_result = await processor.process(payment_data)
     except (StripeNetworkNotSupportError, StripePaymentMethodError, StripeTokenConfigurationError) as exc:
-        failed_transaction_id = f"invalid-payment-{key}"
+        failed_transaction_id = f"invalid-payment-{uuid4().hex}"
         async with session.begin():
             stored_order = await session.scalar(select(Order).where(Order.id == order.id).with_for_update())
             stored_order.payment_status = PaymentStatus.FAILED

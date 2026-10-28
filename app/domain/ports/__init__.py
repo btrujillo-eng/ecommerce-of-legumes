@@ -5,7 +5,6 @@ from .notification_sender import (
     INotificationChannelTemplate,
     INotificationService,
 )
-from .order_repository import IOrderRepository
 from .payment_provider import (
     IDiscountStrategy,
     IPaymentGateway,
@@ -26,7 +25,6 @@ __all__ = [
     "INotificationChannel",
     "INotificationChannelTemplate",
     "INotificationService",
-    "IOrderRepository",
     "IPaymentGateway",
     "IPaymentMethodFactory",
     "IPaymentProcessor",
