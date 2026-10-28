@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr, Field, SecretStr
 
 from app.domain.enums import UserRole
 
-Email = Annotated[EmailStr , Field(min_length=8, max_length=25, description="User's email")]
+Email = Annotated[EmailStr , Field(min_length=5, max_length=255, description="User's email")]
 
 PhoneNumber = Annotated[str, Field(min_length=10, max_length=10, pattern=r'^\d+$', description="User's phone number")]
 

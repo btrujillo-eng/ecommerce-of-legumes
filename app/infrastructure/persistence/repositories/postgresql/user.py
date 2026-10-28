@@ -41,6 +41,14 @@ class UserRepository(IUserRepository):
             return None
         
         return self._to_user_auth(user)
+    
+    async def get_user_by_email_for_update(self, email: str) -> UserForAuthentication | None:
+            stmt = select(User).where(User.email == email).with_for_update()
+            user = await self.db_session.scalar(stmt)
+            if user is None:
+                return None
+            
+            return self._to_user_auth(user)
         
     async def get_user_by_id(self, user_id: int) -> UserForAuthentication | None:
         stmt = select(User).where(User.id == user_id)
@@ -83,8 +91,8 @@ class UserRepository(IUserRepository):
             logger.error("Could not be insert the user: %s | Error: %s", user_data.first_name, e)
             raise UserRegistrationServiceError("User registration service unavailable")
         
-    async def update_password(self, email: str, hashed_password: str) -> UpdatedUserInfo:
-        stmt = select(User).where(User.email == email)
+    async def update_password(self, user_id: int, hashed_password: str) -> UpdatedUserInfo:
+        stmt = select(User).where(User.id == user_id)
         result = await self.db_session.execute(stmt)
         user = result.scalar_one_or_none()
         if user is None:
