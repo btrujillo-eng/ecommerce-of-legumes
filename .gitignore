@@ -20,3 +20,8 @@ htmlcov/
 .idea/
 .venv/
 __pycache__
+
+# Product images and performance-test outputs
+media/
+results.jtl
+report/

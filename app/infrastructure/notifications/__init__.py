@@ -1,19 +1,3 @@
-from app.infrastructure.notifications.notification_service import NotificationService
-from app.infrastructure.notifications.notifiers import (
-    EmailChannel,
-    SmsChannel,
-    WhatsappChannel,
-)
-from app.infrastructure.notifications.template import (
-    EmailChannelTemplate,
-    PhoneChannelTemplate,
-)
+from app.infrastructure.notifications.payment_outbox_worker import PaymentOutboxWorker
 
-__all__ = [
-    "EmailChannel",
-    "EmailChannelTemplate",
-    "NotificationService",
-    "PhoneChannelTemplate",
-    "SmsChannel",
-    "WhatsappChannel",
-]
+__all__ = ["PaymentOutboxWorker"]

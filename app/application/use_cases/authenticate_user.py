@@ -9,7 +9,7 @@ class AuthenticateUserUseCase:
         self.user_repository = user_repository
         
     async def authenticate(self, email: str, password: str) -> UserForAuthentication:
-        user = await self.user_repository.get_user_by_email(email)
+        user = await self.user_repository.get_user_by_email(email.strip().lower())
         if not user:
             raise AuthenticateUserError("Denegated access to the system")
         
