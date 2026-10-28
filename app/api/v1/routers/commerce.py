@@ -11,7 +11,6 @@ from typing import Annotated
 import resend
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile, status
 from sqlalchemy import func, or_, select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -35,6 +34,7 @@ from app.infrastructure.config import Settings, get_settings
 from app.infrastructure.persistence.models import (
     CartItem, Order, OrderItem, OutboxEvent, Product, ProductSection, User,
 )
+from app.exceptions import StripeNetworkNotSupportError, StripePaymentMethodError, StripeTokenConfigurationError
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["commerce"])
@@ -332,6 +332,30 @@ async def checkout(
     try:
         processor = payment_factory.create_payment_processor(payment_method.method)
         payment_result = await processor.process(payment_data)
+    except (StripeNetworkNotSupportError, StripePaymentMethodError, StripeTokenConfigurationError) as exc:
+        failed_transaction_id = f"invalid-payment-{key}"
+        async with session.begin():
+            stored_order = await session.scalar(select(Order).where(Order.id == order.id).with_for_update())
+            stored_order.payment_status = PaymentStatus.FAILED
+            stored_order.payment_failed_at = datetime.now(UTC)
+            stored_order.payment_transaction_id = failed_transaction_id
+            _enqueue_email(
+                session,
+                event_key=f"payment-failed:{failed_transaction_id}",
+                event_type="payment.card.failed",
+                payload={
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "transaction_id": failed_transaction_id,
+                    "amount": str(total),
+                    "currency": "COP",
+                    "message": str(exc),
+                },
+            )
+        raise HTTPException(
+            status_code=422,
+            detail=f"No se pudo procesar la tarjeta. El pedido {order.id} quedó rechazado y el stock se liberará en 10 minutos.",
+        ) from exc
     except Exception:
         logger.exception("Payment processing outcome is uncertain for checkout %s", key)
         raise HTTPException(
@@ -566,7 +590,14 @@ async def package_order(order_id: int, session: SessionDep, user: PackagingManag
     order = await session.scalar(select(Order).where(Order.id == order_id).with_for_update())
     if order is None:
         raise HTTPException(status_code=404, detail="Pedido no encontrado.")
-    if order.delivery_status != DeliveryStatus.PENDING or order.payment_status not in {PaymentStatus.SUCCEDED, PaymentStatus.PENDING}:
+    can_package = (
+        order.payment_status == PaymentStatus.SUCCEDED
+        or (
+            order.payment_method == PaymentMethods.CASH
+            and order.payment_status == PaymentStatus.PENDING
+        )
+    )
+    if order.delivery_status != DeliveryStatus.PENDING or not can_package:
         raise HTTPException(status_code=409, detail="El pedido no está disponible para empaque.")
     order.delivery_status = DeliveryStatus.PACKAGED
     await session.commit()
